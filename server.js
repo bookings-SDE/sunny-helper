@@ -120,11 +120,16 @@ app.patch('/update-order/:id', async (req, res) => {
         Authorization: `Bearer ${BOOQABLE_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        order: {
-          status: newStatus
-        }
-      })
+ body: JSON.stringify({
+  data: {
+    type: "orders",
+    id: orderId,
+    attributes: {
+      status: newStatus
+    }
+  }
+})
+
     });
 
     const text = await response.text();
