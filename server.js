@@ -34,7 +34,16 @@ app.get('/orders', async (req, res) => {
 
     const contentType = response.headers.get('content-type');
     const isJson = contentType && contentType.includes('application/json');
-    const data = isJson ? await response.json() : null;
+    let data = null;
+
+try {
+  const text = await response.text();
+  data = text ? JSON.parse(text) : null;
+} catch (parseErr) {
+  console.error('❌ Failed to parse JSON:', parseErr);
+  data = null;
+}
+
 
     if (!response.ok || !data) {
       console.error(`❌ Booqable error (${response.status}):`, data || 'No data returned');
