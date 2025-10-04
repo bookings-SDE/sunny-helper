@@ -1,15 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const BOOQABLE_API_KEY = process.env.BOOQABLE_API_KEY;
+const BOOQABLE_API_KEY = 'c754b2bb04d05bbdb144ca02ef8f2c945e2a6b33cb5a476806ba8f21bca4c3cd'; // Replace with your actual key
 
 app.patch('/update-order/:orderId', async (req, res) => {
   const { orderId } = req.params;
