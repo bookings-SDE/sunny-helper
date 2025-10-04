@@ -125,7 +125,8 @@ app.patch('/update-order/:id', async (req, res) => {
     type: "orders",
     id: orderId,
     attributes: {
-      status: newStatus
+      status: newStatus,
+      entirely_started: true
     }
   }
 })
