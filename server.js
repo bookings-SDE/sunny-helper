@@ -60,11 +60,11 @@ app.get('/orders', async (req, res) => {
 
     const customers = included.filter(i => i.type === 'customers');
     const lines = included.filter(i => i.type === 'lines');
-    const orderItems = included.filter(i => i.type === 'order_items');
+ //   const orderItems = included.filter(i => i.type === 'order_items');
 
     console.log(`✅ Returned ${orders.length} orders for year ${year}, page ${page}`);
     res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
-    res.json({ orders, customers, lines, orderItems });
+    res.json({ orders, customers, lines});//, orderItems });
   } catch (err) {
     console.error('❌ Server error:', err);
     res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
