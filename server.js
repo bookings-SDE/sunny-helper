@@ -71,6 +71,43 @@ app.get('/orders', async (req, res) => {
   }
 });
 
+app.patch('/update-order/:id', async (req, res) => {
+  const orderId = req.params.id;
+  const status = 'started'; // 🔒 Hardcoded status
+
+  const url = `https://sunny-days-events.booqable.com/api/4/orders/${orderId}`;
+  console.log(`📤 Updating order ${orderId} to status: ${status}`);
+
+  try {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${BOOQABLE_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ order: { status } })
+    });
+
+    const text = await response.text();
+    console.log('📦 Booqable response:', text);
+
+    const data = text ? JSON.parse(text) : null;
+
+    if (!response.ok || !data) {
+      console.error(`❌ Booqable error (${response.status}):`, data || 'No data returned');
+      return res.status(response.status).json({
+        success: false,
+        error: `Booqable returned ${response.status}`,
+        html: data ? JSON.stringify(data) : 'Empty response'
+      });
+    }
+
+    res.json({ success: true, order: data });
+  } catch (err) {
+    console.error('❌ Server error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 app.get('/health', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
