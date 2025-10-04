@@ -106,27 +106,29 @@ app.get('/lines/:orderId', async (req, res) => {
   }
 });
 
-app.post('/start-order/:id', async (req, res) => {
+app.patch('/update-order/:id', async (req, res) => {
   const orderId = req.params.id;
-  const url = `https://sunny-days-events.booqable.com/api/4/orders/${orderId}/status_transitions`;
+  const newStatus = 'picked_up'; // 🔒 Hardcoded status
 
-  console.log(`🚀 Starting order ${orderId} via status_transitions`);
+  const url = `https://sunny-days-events.booqable.com/api/4/orders/${orderId}`;
+  console.log(`📤 Updating order ${orderId} to status: ${newStatus}`);
 
   try {
     const response = await fetch(url, {
-      method: 'POST',
+      method: 'PATCH',
       headers: {
         Authorization: `Bearer ${BOOQABLE_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        data: {
-          type: 'status_transitions',
-          attributes: {
-            to: 'started'
-          }
-        }
-      })
+ body: JSON.stringify({
+  data: {
+    type: "orders",
+    id: orderId,
+    attributes: {
+      status: newStatus
+    }
+  }
+})
     });
 
     const text = await response.text();
@@ -143,7 +145,7 @@ app.post('/start-order/:id', async (req, res) => {
       });
     }
 
-    res.json({ success: true, transition: data });
+    res.json({ success: true, order: data });
   } catch (err) {
     console.error('❌ Server error:', err);
     res.status(500).json({ success: false, error: err.message });
