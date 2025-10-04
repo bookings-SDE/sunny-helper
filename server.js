@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 
 const app = express();
 
-// ✅ Explicitly allow your frontend domain
+// ✅ CORS: allow your live frontend domain
 app.use(cors({
   origin: 'https://www.sunnydaysevents.com',
   methods: ['GET', 'POST', 'PATCH'],
@@ -19,8 +19,8 @@ app.get('/orders', async (req, res) => {
   const page = req.query.page || 1;
   const year = req.query.year || new Date().getFullYear();
 
-const url = `https://api.booqable.com/v1/orders?include=customers,lines&page[number]=${page}&page[size]=25`;
-console.log('📦 Raw Booqable response:', JSON.stringify(data, null, 2));
+  // ✅ Start with no filters to confirm connection
+  const url = `https://api.booqable.com/v1/orders?include=customers,lines&page[number]=${page}&page[size]=25`;
 
   console.log(`🔗 Fetching Booqable orders: ${url}`);
 
@@ -34,18 +34,17 @@ console.log('📦 Raw Booqable response:', JSON.stringify(data, null, 2));
 
     const contentType = response.headers.get('content-type');
     const isJson = contentType && contentType.includes('application/json');
+    const data = isJson ? await response.json() : null;
 
-    if (!response.ok || !isJson) {
-      const errorText = await response.text();
-      console.error(`❌ Booqable error (${response.status}):`, errorText);
+    if (!response.ok || !data) {
+      console.error(`❌ Booqable error (${response.status}):`, data || 'No data returned');
+      res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
       return res.status(response.status).json({
         success: false,
         error: `Booqable returned ${response.status}`,
-        html: errorText
+        html: JSON.stringify(data)
       });
     }
-
-    const data = await response.json();
 
     const orders = data.data || [];
     const customers = data.included?.filter(c => c.type === 'customers') || [];
@@ -81,18 +80,18 @@ app.patch('/update-order/:orderId', async (req, res) => {
 
     const contentType = response.headers.get('content-type');
     const isJson = contentType && contentType.includes('application/json');
+    const data = isJson ? await response.json() : null;
 
-    if (!response.ok || !isJson) {
-      const errorText = await response.text();
-      console.error(`❌ Booqable update error (${response.status}):`, errorText);
+    if (!response.ok || !data) {
+      console.error(`❌ Booqable update error (${response.status}):`, data || 'No data returned');
+      res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
       return res.status(response.status).json({
         success: false,
         error: `Booqable returned ${response.status}`,
-        html: errorText
+        html: JSON.stringify(data)
       });
     }
 
-    const data = await response.json();
     res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
     res.json({ success: true, data });
   } catch (err) {
