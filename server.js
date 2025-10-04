@@ -73,7 +73,7 @@ app.get('/orders', async (req, res) => {
 
 app.patch('/update-order/:id', async (req, res) => {
   const orderId = req.params.id;
-  const status = 'started'; // 🔒 Hardcoded status
+  //const status = 'started'; // 🔒 Hardcoded status
 
   const url = `https://sunny-days-events.booqable.com/api/4/orders/${orderId}`;
   console.log(`📤 Updating order ${orderId} to status: ${status}`);
@@ -87,7 +87,7 @@ app.patch('/update-order/:id', async (req, res) => {
       },
       body: JSON.stringify({
         order: {
-          status: status
+          status: 'started'
         }
       })
     });
