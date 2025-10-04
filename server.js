@@ -108,10 +108,10 @@ app.get('/lines/:orderId', async (req, res) => {
 
 app.patch('/update-order/:id', async (req, res) => {
   const orderId = req.params.id;
-  //const status = 'started'; // 🔒 Hardcoded status
+  const newStatus = 'started'; // 🔒 Hardcoded status
 
   const url = `https://sunny-days-events.booqable.com/api/4/orders/${orderId}`;
-  console.log(`📤 Updating order ${orderId} to status: ${status}`);
+  console.log(`📤 Updating order ${orderId} to status: ${newStatus}`);
 
   try {
     const response = await fetch(url, {
@@ -122,7 +122,7 @@ app.patch('/update-order/:id', async (req, res) => {
       },
       body: JSON.stringify({
         order: {
-          status: 'started'
+          status: ${newStatus}
         }
       })
     });
