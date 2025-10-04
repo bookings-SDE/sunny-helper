@@ -1,5 +1,6 @@
 const express = require('express');
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
+
 const cors = require('cors');
 
 const app = express();
@@ -12,12 +13,16 @@ app.patch('/update-order/:orderId', async (req, res) => {
   const { orderId } = req.params;
   const { status } = req.body;
 
+  if (!status) {
+    return res.status(400).json({ error: 'Missing status in request body' });
+  }
+
   try {
     const response = await fetch(`https://api.booqable.com/v1/orders/${orderId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${BOOQABLE_API_KEY}`
+        'Authorization': `Bearer ${process.env.BOOQABLE_API_KEY}`
       },
       body: JSON.stringify({ order: { status } })
     });
@@ -28,6 +33,7 @@ app.patch('/update-order/:orderId', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 
 app.listen(3000, () => {
   console.log('✅ Sunny Helper is running at http://localhost:3000');
