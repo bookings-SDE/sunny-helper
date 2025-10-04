@@ -62,7 +62,7 @@ app.get('/orders', async (req, res) => {
 
     console.log(`✅ Returned ${orders.length} orders for year ${year}, page ${page}`);
     res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
-    res.json({ orders, customers, orderItems });
+    res.json({ orders, customers });
   } catch (err) {
     console.error('❌ Server error:', err);
     res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
