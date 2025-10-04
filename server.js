@@ -16,14 +16,16 @@ app.get('/orders', async (req, res) => {
               `&filter[starts_at][gte]=${year}-01-01` +
               `&filter[starts_at][lte]=${year}-12-31` +
               `&page[number]=${page}&page[size]=25`;
+
+  console.log(`🔗 Fetching Booqable orders: ${url}`);
+
   try {
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${BOOQABLE_API_KEY}`,
         'Content-Type': 'application/json'
       }
-});
-
+    });
 
     const contentType = response.headers.get('content-type');
     const isJson = contentType && contentType.includes('application/json');
@@ -44,46 +46,9 @@ app.get('/orders', async (req, res) => {
     const customers = data.included?.filter(c => c.type === 'customers') || [];
     const lines = data.included?.filter(i => i.type === 'lines') || [];
 
+    console.log(`✅ Returned ${orders.length} orders for year ${year}, page ${page}`);
+
     res.json({ orders, customers, lines });
-  } catch (err) {
-    console.error('❌ Server error:', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-app.patch('/update-order/:orderId', async (req, res) => {
-  const { orderId } = req.params;
-  const { status } = req.body;
-
-  if (!status) {
-    return res.status(400).json({ error: 'Missing status in request body' });
-  }
-
-  try {
-    const response = await fetch(`https://api.booqable.com/v1/orders/${orderId}`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${BOOQABLE_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ order: { status } })
-    });
-
-    const contentType = response.headers.get('content-type');
-    const isJson = contentType && contentType.includes('application/json');
-
-    if (!response.ok || !isJson) {
-      const errorText = await response.text();
-      console.error(`❌ Booqable update error (${response.status}):`, errorText);
-      return res.status(response.status).json({
-        success: false,
-        error: `Booqable returned ${response.status}`,
-        html: errorText
-      });
-    }
-
-    const data = await response.json();
-    res.json({ success: true, data });
   } catch (err) {
     console.error('❌ Server error:', err);
     res.status(500).json({ success: false, error: err.message });
