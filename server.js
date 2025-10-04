@@ -12,11 +12,9 @@ app.get('/orders', async (req, res) => {
   const page = req.query.page || 1;
   const year = req.query.year || new Date().getFullYear();
 
-  const url = `https://api.booqable.com/v1/orders?include=customers,lines` +
-              `&filter[starts_at][gte]=${year}-01-01` +
-              `&filter[starts_at][lte]=${year}-12-31` +
-              `&page[number]=${page}&page[size]=25`;
 
+const url = `https://api.booqable.com/v1/orders?include=customers,lines&page[number]=${page}&page[size]=25`;
+  
   console.log(`🔗 Fetching Booqable orders: ${url}`);
 
   try {
