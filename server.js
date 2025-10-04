@@ -1,12 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const BOOQABLE_API_KEY = 'c754b2bb04d05bbdb144ca02ef8f2c945e2a6b33cb5a476806ba8f21bca4c3cd'; // Replace with your actual key or use process.env
+const BOOQABLE_API_KEY = process.env.BOOQABLE_API_KEY;
 
 app.patch('/update-order/:orderId', async (req, res) => {
   const { orderId } = req.params;
@@ -25,6 +28,14 @@ app.patch('/update-order/:orderId', async (req, res) => {
       },
       body: JSON.stringify({ order: { status } })
     });
+
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+
+    if (!isJson) {
+      const text = await response.text();
+      return res.status(500).json({ success: false, error: 'Invalid JSON response', html: text });
+    }
 
     const data = await response.json();
     res.json({ success: true, data });
