@@ -20,7 +20,7 @@ app.get('/orders', async (req, res) => {
   const year = req.query.year || new Date().getFullYear();
 
   const url = `https://sunny-days-events.booqable.com/api/4/orders` +
-              `?include=customer,lines,order_items` +
+              `?include=customer` +
               `&filter[starts_at][gte]=${year}-01-01` +
               `&filter[starts_at][lte]=${year}-12-31` +
               `&page[number]=${page}&page[size]=25`;
@@ -59,14 +59,48 @@ app.get('/orders', async (req, res) => {
     const included = data.included || [];
 
     const customers = included.filter(i => i.type === 'customers');
-    const lines = included.filter(i => i.type === 'lines');
- //   const orderItems = included.filter(i => i.type === 'order_items');
 
     console.log(`✅ Returned ${orders.length} orders for year ${year}, page ${page}`);
     res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
-    res.json({ orders, customers, lines});//, orderItems });
+    res.json({ orders, customers, orderItems });
   } catch (err) {
     console.error('❌ Server error:', err);
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/lines/:orderId', async (req, res) => {
+  const orderId = req.params.orderId;
+  const url = `https://sunny-days-events.booqable.com/api/4/orders/${orderId}?include=lines`;
+
+  console.log(`🔗 Fetching lines for order ${orderId}`);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${BOOQABLE_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : null;
+
+    if (!response.ok || !data) {
+      console.error(`❌ Booqable error (${response.status}):`, data || 'No data returned');
+      return res.status(response.status).json({
+        success: false,
+        error: `Booqable returned ${response.status}`,
+        html: data ? JSON.stringify(data) : 'Empty response'
+      });
+    }
+
+    const lines = data.included?.filter(i => i.type === 'lines') || [];
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
+    res.json({ lines });
+  } catch (err) {
+    console.error(`❌ Failed to fetch lines for order ${orderId}:`, err);
     res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
     res.status(500).json({ success: false, error: err.message });
   }
