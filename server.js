@@ -108,7 +108,7 @@ app.get('/lines/:orderId', async (req, res) => {
 
 app.patch('/update-order/:id', async (req, res) => {
   const orderId = req.params.id;
-  const newStatus = 'started'; // 🔒 Hardcoded status
+  const newStatus = 'picked_up'; // 🔒 Hardcoded status
 
   const url = `https://sunny-days-events.booqable.com/api/4/orders/${orderId}`;
   console.log(`📤 Updating order ${orderId} to status: ${newStatus}`);
