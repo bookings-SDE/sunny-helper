@@ -20,6 +20,7 @@ app.get('/orders', async (req, res) => {
   const year = req.query.year || new Date().getFullYear();
 
 const url = `https://api.booqable.com/v1/orders?include=customers,lines&page[number]=${page}&page[size]=25`;
+console.log('📦 Raw Booqable response:', JSON.stringify(data, null, 2));
 
   console.log(`🔗 Fetching Booqable orders: ${url}`);
 
