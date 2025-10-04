@@ -1,10 +1,31 @@
+import express from 'express';
+import cors from 'cors';
 import fetch from 'node-fetch';
+
+const app = express();
+
+// ✅ CORS: allow your frontend domain
+app.use(cors({
+  origin: 'https://www.sunnydaysevents.com',
+  methods: ['GET', 'POST', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json());
 
 const BOOQABLE_API_KEY = 'c754b2bb04d05bbdb144ca02ef8f2c945e2a6b33cb5a476806ba8f21bca4c3cd'; // Replace with your actual key
 
-// ✅ Fetch one page of orders
-async function testFetchOrders() {
-  const url = 'https://api.booqable.com/v1/orders?include=customers,lines&page[number]=1&page[size]=25';
+app.get('/orders', async (req, res) => {
+  const page = req.query.page || 1;
+  const year = req.query.year || new Date().getFullYear();
+
+  const url = `https://sunny-days-events.booqable.com/api/4/orders` +
+              `?include=customer` +
+              `&filter[starts_at][gte]=${year}-01-01` +
+              `&filter[starts_at][lte]=${year}-12-31` +
+              `&page[number]=${page}&page[size]=25`;
+
+  console.log(`🔗 Fetching Booqable orders: ${url}`);
 
   try {
     const response = await fetch(url, {
@@ -14,52 +35,49 @@ async function testFetchOrders() {
       }
     });
 
+    const contentType = response.headers.get('content-type');
+    const isJson = contentType && contentType.includes('application/json');
+
+    let data = null;
     const text = await response.text();
-    console.log('📦 Raw response:', text);
+    console.log('📦 Raw response text:', text);
 
-    const data = text ? JSON.parse(text) : null;
-    const orders = data?.data || [];
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (parseErr) {
+      console.error('❌ Failed to parse JSON:', parseErr);
+    }
 
-    console.log(`✅ Fetched ${orders.length} orders`);
-    return orders;
+    if (!response.ok || !data) {
+      console.error(`❌ Booqable error (${response.status}):`, data || 'No data returned');
+      res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
+      return res.status(response.status).json({
+        success: false,
+        error: `Booqable returned ${response.status}`,
+        html: data ? JSON.stringify(data) : 'Empty response'
+      });
+    }
+
+    const orders = data.data || [];
+    const customers = data.included?.filter(c => c.type === 'customer') || [];
+
+    console.log(`✅ Returned ${orders.length} orders for year ${year}, page ${page}`);
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
+    res.json({ orders, customers });
   } catch (err) {
-    console.error('❌ Fetch error:', err);
+    console.error('❌ Server error:', err);
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
+    res.status(500).json({ success: false, error: err.message });
   }
-}
+});
 
-// ✅ Push a status update to one order
-async function testUpdateOrder(orderId, newStatus) {
-  const url = `https://api.booqable.com/v1/orders/${orderId}`;
+app.get('/health', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
-  try {
-    const response = await fetch(url, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer ${BOOQABLE_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ order: { status: newStatus } })
-    });
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`✅ Sunny Helper is running locally on http://localhost:${port}`);
+});
 
-    const text = await response.text();
-    console.log('📤 Update response:', text);
-
-    const data = text ? JSON.parse(text) : null;
-    console.log(`✅ Order ${orderId} updated to status: ${newStatus}`);
-    return data;
-  } catch (err) {
-    console.error('❌ Update error:', err);
-  }
-}
-
-// ✅ Run both tests
-(async () => {
-  const orders = await testFetchOrders();
-
-  if (orders.length > 0) {
-    const firstOrderId = orders[0].id;
-    await testUpdateOrder(firstOrderId, 'confirmed'); // Change status as needed
-  } else {
-    console.log('⚠️ No orders found to update');
-  }
-})();
