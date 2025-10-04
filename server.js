@@ -122,7 +122,7 @@ app.patch('/update-order/:id', async (req, res) => {
       },
       body: JSON.stringify({
         order: {
-          status: ${newStatus}
+          status: newStatus
         }
       })
     });
