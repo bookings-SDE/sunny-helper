@@ -1,0 +1,34 @@
+const express = require('express');
+const fetch = require('node-fetch');
+const cors = require('cors');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const BOOQABLE_API_KEY = 'c754b2bb04d05bbdb144ca02ef8f2c945e2a6b33cb5a476806ba8f21bca4c3cd'; // Replace this with your actual key
+
+app.patch('/update-order/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+
+  try {
+    const response = await fetch(`https://api.booqable.com/v1/orders/${orderId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${BOOQABLE_API_KEY}`
+      },
+      body: JSON.stringify({ order: { status } })
+    });
+
+    const data = await response.json();
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('✅ Sunny Helper is running at http://localhost:3000');
+});
