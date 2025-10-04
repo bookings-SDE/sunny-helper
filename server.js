@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 
 const app = express();
 
-// ✅ Allow your live domain
+// ✅ Explicitly allow your frontend domain
 app.use(cors({
   origin: 'https://www.sunnydaysevents.com',
   methods: ['GET', 'POST', 'PATCH'],
@@ -19,7 +19,6 @@ app.get('/orders', async (req, res) => {
   const page = req.query.page || 1;
   const year = req.query.year || new Date().getFullYear();
 
-  // 🔧 Use created_at instead of starts_at for broader compatibility
   const url = `https://api.booqable.com/v1/orders?include=customers,lines` +
               `&filter[created_at][gte]=${year}-01-01` +
               `&filter[created_at][lte]=${year}-12-31` +
@@ -55,9 +54,11 @@ app.get('/orders', async (req, res) => {
     const lines = data.included?.filter(i => i.type === 'lines') || [];
 
     console.log(`✅ Returned ${orders.length} orders for year ${year}, page ${page}`);
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
     res.json({ orders, customers, lines });
   } catch (err) {
     console.error('❌ Server error:', err);
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
     res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -94,14 +95,17 @@ app.patch('/update-order/:orderId', async (req, res) => {
     }
 
     const data = await response.json();
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
     res.json({ success: true, data });
   } catch (err) {
     console.error('❌ Server error:', err);
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
 app.get('/health', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
