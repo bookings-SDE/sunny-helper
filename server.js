@@ -25,17 +25,17 @@ app.get('/orders', async (req, res) => {
   console.log(`🔗 Fetching Booqable orders: ${url}`);
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${BOOQABLE_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
+   const response = await fetch(url, {
+  headers: {
+    Authorization: `Bearer ${BOOQABLE_API_KEY}`,
+    'Content-Type': 'application/json'
+  }
+});
 
-    const contentType = response.headers.get('content-type');
-    const isJson = contentType && contentType.includes('application/json');
-    let data = null;
+const contentType = response.headers.get('content-type');
+const isJson = contentType && contentType.includes('application/json');
 
+let data = null;
 try {
   const text = await response.text();
   data = text ? JSON.parse(text) : null;
@@ -44,15 +44,15 @@ try {
   data = null;
 }
 
-
-    if (!response.ok || !data) {
-      console.error(`❌ Booqable error (${response.status}):`, data || 'No data returned');
-      res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
-      return res.status(response.status).json({
-        success: false,
-        error: `Booqable returned ${response.status}`,
-        html: JSON.stringify(data)
-      });
+if (!response.ok || !data) {
+  console.error(`❌ Booqable error (${response.status}):`, data || 'No data returned');
+  res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
+  return res.status(response.status).json({
+    success: false,
+    error: `Booqable returned ${response.status}`,
+    html: data ? JSON.stringify(data) : 'Empty response'
+  });
+}
     }
 
     const orders = data.data || [];
