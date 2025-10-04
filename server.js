@@ -53,7 +53,7 @@ if (!response.ok || !data) {
     html: data ? JSON.stringify(data) : 'Empty response'
   });
 }
-    }
+    
 
     const orders = data.data || [];
     const customers = data.included?.filter(c => c.type === 'customers') || [];
