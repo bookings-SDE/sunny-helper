@@ -16,14 +16,14 @@ app.get('/orders', async (req, res) => {
               `&filter[starts_at][gte]=${year}-01-01` +
               `&filter[starts_at][lte]=${year}-12-31` +
               `&page[number]=${page}&page[size]=25`;
-
   try {
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${BOOQABLE_API_KEY}`,
         'Content-Type': 'application/json'
       }
-    });
+});
+
 
     const contentType = response.headers.get('content-type');
     const isJson = contentType && contentType.includes('application/json');
