@@ -85,7 +85,7 @@ app.patch('/update-order/:id', async (req, res) => {
         Authorization: `Bearer ${BOOQABLE_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ order: { status } })
+      body: JSON.stringify({ order: { status { order: { status: "started" } })
     });
 
     const text = await response.text();
@@ -108,6 +108,7 @@ app.patch('/update-order/:id', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
 app.get('/health', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
