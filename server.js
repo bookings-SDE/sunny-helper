@@ -20,7 +20,7 @@ app.get('/orders', async (req, res) => {
   const year = req.query.year || new Date().getFullYear();
 
   const url = `https://sunny-days-events.booqable.com/api/4/orders` +
-              `?include=customer` +
+              `?include=customer,lines,order_items` +
               `&filter[starts_at][gte]=${year}-01-01` +
               `&filter[starts_at][lte]=${year}-12-31` +
               `&page[number]=${page}&page[size]=25`;
@@ -35,22 +35,19 @@ app.get('/orders', async (req, res) => {
       }
     });
 
-    const contentType = response.headers.get('content-type');
-    const isJson = contentType && contentType.includes('application/json');
-
-    let data = null;
     const text = await response.text();
     console.log('📦 Raw response text:', text);
 
+    let data;
     try {
       data = text ? JSON.parse(text) : null;
     } catch (parseErr) {
       console.error('❌ Failed to parse JSON:', parseErr);
+      return res.status(500).json({ success: false, error: 'Invalid JSON from Booqable' });
     }
 
     if (!response.ok || !data) {
       console.error(`❌ Booqable error (${response.status}):`, data || 'No data returned');
-      res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
       return res.status(response.status).json({
         success: false,
         error: `Booqable returned ${response.status}`,
@@ -59,11 +56,15 @@ app.get('/orders', async (req, res) => {
     }
 
     const orders = data.data || [];
-    const customers = data.included?.filter(c => c.type === 'customer') || [];
+    const included = data.included || [];
+
+    const customers = included.filter(i => i.type === 'customers');
+    const lines = included.filter(i => i.type === 'lines');
+    const orderItems = included.filter(i => i.type === 'order_items');
 
     console.log(`✅ Returned ${orders.length} orders for year ${year}, page ${page}`);
     res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
-    res.json({ orders, customers });
+    res.json({ orders, customers, lines, orderItems });
   } catch (err) {
     console.error('❌ Server error:', err);
     res.setHeader('Access-Control-Allow-Origin', 'https://www.sunnydaysevents.com');
